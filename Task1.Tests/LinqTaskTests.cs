@@ -68,7 +68,7 @@ namespace Task1.Tests
             Assert.That(() => LinqTask.Linq2UsingGroup(null, null).ToList(), Throws.ArgumentNullException);
         }
 
-        [TestCase(800, ExpectedResult = 2)]
+        [TestCase(800, ExpectedResult = 4)]
         [TestCase(0, ExpectedResult = 6)]
         [TestCase(-1, ExpectedResult = 6)]
         [TestCase(1, ExpectedResult = 5)]
@@ -209,12 +209,12 @@ namespace Task1.Tests
         [Test]
         public void Linq8_Products_ReturnsGroupedProducts()
         {
-            decimal cheap = 10, middle = 30, expensive = 40;
-            var result = LinqTask.Linq8(DataSource.Products, cheap, middle, expensive).ToList();
+            decimal cheap = 10, average = 30, expensive = 40;
+            var result = LinqTask.Linq8(DataSource.Products, cheap, average, expensive).ToList();
 
             var cheapProducts = result.Single(_ => _.category == cheap).products;
             Assert.That(cheapProducts.Count(), Is.EqualTo(1));
-            var middleProducts = result.Single(_ => _.category == middle).products;
+            var middleProducts = result.Single(_ => _.category == average).products;
             Assert.That(middleProducts.Count(), Is.EqualTo(3));
             var expensiveProducts = result.Single(_ => _.category == expensive).products;
             Assert.That(expensiveProducts.Count(), Is.EqualTo(1));

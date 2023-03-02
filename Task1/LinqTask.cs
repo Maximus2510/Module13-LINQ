@@ -18,8 +18,8 @@ namespace Task1
             IEnumerable<Supplier> suppliers
         )
         {
-            return customers.Select(c => 
-                (customer: c, 
+            return customers.Select(c =>
+                (customer: c,
                 suppliers: suppliers.Where(s => s.Country == c.Country && s.City == c.City)
                 ));
         }
@@ -39,19 +39,23 @@ namespace Task1
 
         public static IEnumerable<Customer> Linq3(IEnumerable<Customer> customers, decimal limit)
         {
-            return customers.Where(c => c.Orders.Any() && c.Orders.Sum(o => o.Total) > limit);
+            return customers.Where(c =>
+            {
+                decimal sum = c.Orders.Sum(o => o.Total);
+                return sum > limit && c.Orders.Any();
+            });
         }
 
         public static IEnumerable<(Customer customer, DateTime dateOfEntry)> Linq4(
             IEnumerable<Customer> customers
         )
         {
-            return customers.Select(c =>
-                (customer: c, dateOfEntry: c.Orders
-                    .OrderBy(o => o.OrderDate)
-                    .Select(o => (DateTime?)o.OrderDate)
-                    .FirstOrDefault() ?? DateTime.MinValue)
-            );
+            return customers
+                .Where(c => c.Orders.Any())  // Exclude customers without any orders
+                .Select(c => (
+                customer: c,
+                dateOfEntry: c.Orders.Min(o => o.OrderDate)
+                ));
         }
 
         public static IEnumerable<(Customer customer, DateTime dateOfEntry)> Linq5(
@@ -59,11 +63,15 @@ namespace Task1
         )
         {
             return customers
-                .Where(c => c.Orders.Any())
-                .Select(c => (customer: c, dateOfEntry: c.Orders.Min(o => o.OrderDate)))
-                .OrderByDescending(x => x.dateOfEntry.Year)
-                .ThenByDescending(x => x.customer.Orders.Sum(o => o.Total))
-                .ThenByDescending(x => x.dateOfEntry);
+                .Where(c => c.Orders.Any())  // Exclude customers without any orders
+                .Select(c => (
+                customer: c,
+                dateOfEntry: c.Orders.Min(o => o.OrderDate)
+            ))
+            .OrderBy(t => t.dateOfEntry.Year)
+            .ThenBy(t => t.dateOfEntry.Month)
+            .ThenByDescending(t => t.customer.Orders.Sum(o => o.Total))
+            .ThenBy(t => t.customer.CompanyName);
         }
 
         public static IEnumerable<Customer> Linq6(IEnumerable<Customer> customers)
@@ -90,35 +98,13 @@ namespace Task1
         }
 
         public static IEnumerable<(decimal category, IEnumerable<Product> products)> Linq8(
-            IEnumerable<Product> products,
+                IEnumerable<Product> products,
             decimal cheap,
             decimal average,
             decimal expensive
-        )
+)
         {
-            var groups = products
-        .GroupBy(p =>
-        {
-            if (p.UnitPrice <= cheap)
-            {
-                return "Cheap";
-            }
-            else if (p.UnitPrice <= average)
-            {
-                return "Average";
-            }
-            else if (p.UnitPrice <= expensive)
-            {
-                return "Expensive";
-            }
-            else
-            {
-                return "priceless";
-            }
-        })
-        .Select(g => (g.Key, g));
-
-            return (IEnumerable<(decimal category, IEnumerable<Product> products)>)groups;
+            throw new NotImplementedException();
         }
 
         public static IEnumerable<(string city, int averageIncome, int averageIntensity)> Linq9(
@@ -126,15 +112,15 @@ namespace Task1
         )
         {
             var result = customers.GroupBy(c => c.City)
-        .Select(g => (
-            city: g.Key,
-            averageIncome: g.Average(c => c.Orders.Sum(o => o.Total)),
-            averageIntensity: (int)Math.Round(g.Average(c => c.Orders.Length), MidpointRounding.AwayFromZero)
-        ))
-        .OrderByDescending(r => r.averageIncome)
-        .ThenBy(r => r.city);
+                .Select(g => (
+                    city: g.Key,
+                    averageIncome: Convert.ToInt32(g.Average(c => c.Orders.Sum(o => o.Total))),
+                    averageIntensity: Convert.ToInt32(Math.Round(g.Average(c => c.Orders.Length)))
+            ))
+                .OrderByDescending(r => r.averageIncome)
+                .ThenBy(r => r.city);
 
-            return (IEnumerable<(string city, int averageIncome, int averageIntensity)>)result;
+            return result;
         }
 
         public static string Linq10(IEnumerable<Supplier> suppliers)
